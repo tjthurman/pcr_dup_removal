@@ -1,0 +1,18 @@
+Hi Stacks google group,
+
+I'd like to use clone_filter to remove PCR duplicates from PE ddRAD data. In testing it out, I'm getting some unexpected (to me) behavior: it seems to properly remove PCR duplicates no matter which of the options I use. So, I wanted to make sure I understand exactly what clone_filter is doing and make sure I'm using it correctly.
+
+To go into more detail: I'm still in the planning stages, but I'd like to use a slightly different DBR design than is described in the options of the Stacks manual. I'm working with multiplexed samples which have a library index (in the Fastq header), 48 individual sample barcodes (the first 5 bases of the R1 read), and a 7-base DBR region in the P2 adaptor. The DBR region is thus the first 7 bases of the R2 read.
+
+I made some test fastq files (attached), simulating 20 reads. The first 10 sequences  have unique genomic DNA sequences. Five of those share the same DBR, and five have unique DBRs. The next 5 sequences are duplicates, with the same genomic DNA and the same DBR. Same for the next 3 sequences, and the next 2 sequences. Our sequencing center returns fastq files for each library, so for any set of R1 and R2 fastq files, all the reads have the same index in the fastq header.
+
+None of the clone_filter options seemed to fit my specific situation, which I suppose would be --null_inline. Nevertheless, all the options correctly removed the 7 duplicates and retained 13 reads. TRIMMING DBR? This was especially unexpected for the options in which the DBR is assumed to be in the Illumina index.
+
+My guess is that
+
+
+Finally, unrelated to DBRs, I wanted to confirm the way that clone_filter identifies duplicates and chooses the read it keeps. In reading the google group, it seems these questions have been answered for previous versions, but I wanted to make sure nothing has changed. First: duplicates are determined by exact sequence matching, correct? That is, if two reads had the same DBR but differed at a single site (e.g., one read had an A and one had an N), the reads would not be considered duplicates? Also, clone_filter keeps the first instance of a PCR duplicate and discards the rest, right? It doesn't use any other criteria (e.g., keeping the highest quality read from a set of putative duplicates).
+
+Thanks in advance for any help
+DBR in R1
+https://groups.google.com/forum/#!searchin/stacks-users/clone_filter$20ddRAD%7Csort:relevance/stacks-users/uZIbkVJkBVA/FXNwstciAgAJ
