@@ -1,18 +1,20 @@
 Hi Stacks google group,
 
-I'd like to use clone_filter to remove PCR duplicates from PE ddRAD data. In testing it out, I'm getting some unexpected (to me) behavior: it seems to properly remove PCR duplicates no matter which of the options I use. So, I wanted to make sure I understand exactly what clone_filter is doing and make sure I'm using it correctly.
+I'd like to use clone_filter (v1.46) to remove PCR duplicates from PE ddRAD data. In testing it out, I'm getting some unexpected (to me) behavior: it seems to properly remove PCR duplicates no matter which of the options I use. So, I wanted to make sure I understand what clone_filter is doing and that I'm using it correctly.
 
-To go into more detail: I'm still in the planning stages, but I'd like to use a slightly different DBR design than is described in the options of the Stacks manual. I'm working with multiplexed samples which have a library index (in the Fastq header), 48 individual sample barcodes (the first 5 bases of the R1 read), and a 7-base DBR region in the P2 adaptor. The DBR region is thus the first 7 bases of the R2 read.
+I'm using a slightly different DBR design than is described in the options of the Stacks manual. I'm working with multiplexed samples which have a library index (in the fastq header), individual sample barcodes (the first 5 bases of the R1 read), and a 7-base DBR region in the P2 adaptor. In the R2 read, the DBR is the first 7 bases.  Our sequencing center returns fastq files for each library, so for any set of R1 and R2 fastq files, all the reads have the same index in the fastq header.
 
-I made some test fastq files (attached), simulating 20 reads. The first 10 sequences  have unique genomic DNA sequences. Five of those share the same DBR, and five have unique DBRs. The next 5 sequences are duplicates, with the same genomic DNA and the same DBR. Same for the next 3 sequences, and the next 2 sequences. Our sequencing center returns fastq files for each library, so for any set of R1 and R2 fastq files, all the reads have the same index in the fastq header.
+I made some test fastq files (attached), simulating 20 reads. The first 10 reads have unique genomic DNA sequences. Five of those share the same DBR, and five have unique DBRs. The next 5 sequences are duplicates, with the same genomic DNA and the same DBR. Same for the next 3 sequences, and the next 2 sequences. So, 13 unique reads and 7 duplicates. All the reads have the same index in the fastq header.
 
-None of the clone_filter options seemed to fit my specific situation, which I suppose would be --null_inline. Nevertheless, all the options correctly removed the 7 duplicates and retained 13 reads. TRIMMING DBR? This was especially unexpected for the options in which the DBR is assumed to be in the Illumina index.
+None of the clone_filter options matched my specific situation, which I suppose would be --null_inline. Nevertheless, all the options correctly removed the 7 duplicates and retained 13 reads. The only difference between methods was whether they trimmed the DBR off the R2 read (only index_inline and inline_inline did). Here's an example command, the only thing I changed was which option I used, all other arguments were the same:
 
-My guess is that
+clone_filter -1 DBR_test_R1.fastq  -2 DBR_test_R2.fastq -i fastq  -D --oligo_len_2 7  --index_inline
 
+I wasn't expecting all 7 options to work (especially the ones that expect a DBR in the index). In trying to figure it out, here's what I came up with. Since my reads are split by library, all the indices are the same. So, for any of the index options, clone_filter just compares the reads, since the indices match. In the R2, it doesn't realize the first 7 bases are DBRs and not genomic, but that doesn't matter, it only cares whether they match. Same for options that expect a DBR in the forward read: as long as the reverse reads are different due to their DBRs, they never get flagged as potential duplicates anyway. Is that what's going on, or am I out to lunch?
 
-Finally, unrelated to DBRs, I wanted to confirm the way that clone_filter identifies duplicates and chooses the read it keeps. In reading the google group, it seems these questions have been answered for previous versions, but I wanted to make sure nothing has changed. First: duplicates are determined by exact sequence matching, correct? That is, if two reads had the same DBR but differed at a single site (e.g., one read had an A and one had an N), the reads would not be considered duplicates? Also, clone_filter keeps the first instance of a PCR duplicate and discards the rest, right? It doesn't use any other criteria (e.g., keeping the highest quality read from a set of putative duplicates).
+Finally, unrelated to DBRs, I wanted to confirm the way that clone_filter identifies duplicates and chooses the read it keeps. In reading the google group, it seems these questions have been answered for previous versions, but I wanted to make sure nothing has changed. First: duplicates are determined by exact sequence matching, correct? That is, if two reads had the same DBR and almost exactly the same read, but differed at a single site (e.g., one read had an A and one had an N), the reads would not be considered duplicates? Also, clone_filter keeps the first instance of a PCR duplicate and discards the rest, right? It doesn't use any other criteria (e.g., keeping the highest quality read from a set of putative duplicates).
 
-Thanks in advance for any help
-DBR in R1
-https://groups.google.com/forum/#!searchin/stacks-users/clone_filter$20ddRAD%7Csort:relevance/stacks-users/uZIbkVJkBVA/FXNwstciAgAJ
+Thanks in advance for any help with this!
+
+Best,
+Tim
