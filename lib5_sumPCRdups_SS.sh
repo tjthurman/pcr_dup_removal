@@ -25,5 +25,5 @@ cd /home/tjthurm/barrett_tim/demulti/lib_5_01_19_2018/dedup
 
 for file in *.log
 do
-Rscript ~src/summarize_PCRdups.R $file  >> lib5_PCRdup_res.txt
+Rscript ~/src/summarize_PCRdups.R $file  >> lib5_PCRdup_res.txt
 done
